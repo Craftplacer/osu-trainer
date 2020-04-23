@@ -117,20 +117,18 @@ namespace osu_trainer
             // main phase
             Beatmap exportBeatmap = NewBeatmap.Copy();
             ModifyBeatmapMetadata(exportBeatmap, BpmMultiplier, ChangePitch);
-
-            var audioFilePath = Path.Combine(JunUtils.GetBeatmapDirectoryName(OriginalBeatmap), exportBeatmap.AudioFilename);
-            if (!File.Exists(audioFilePath))
+            if (!File.Exists(JunUtils.GetBeatmapDirectoryName(OriginalBeatmap) + "\\" + exportBeatmap.AudioFilename))
             {
-                string inFile = Path.Combine(Path.GetDirectoryName(OriginalBeatmap.Filename), OriginalBeatmap.AudioFilename);
-                string outFile = Path.Combine(Path.GetDirectoryName(exportBeatmap.Filename), exportBeatmap.AudioFilename);
+                string inFile = $"{Path.GetDirectoryName(OriginalBeatmap.Filename)}\\{OriginalBeatmap.AudioFilename}";
+                string outFile = $"{Path.GetDirectoryName(exportBeatmap.Filename)}\\{exportBeatmap.AudioFilename}";
                 await Task.Run(() => SongSpeedChanger.GenerateAudioFile(inFile, outFile, BpmMultiplier, ChangePitch));
 
                 // take note of this mp3 in a text file, so we can clean it up later
-                string mp3ManifestFile = getMp3ListFilePath();
+                string mp3ManifestFile = Properties.Settings.Default.SongsFolder + "\\modified_mp3_list.txt";
                 using (var writer = File.AppendText(mp3ManifestFile))
                 {
                     string beatmapFolder = Path.GetDirectoryName(exportBeatmap.Filename).Replace(Properties.Settings.Default.SongsFolder + "\\", "");
-                    string mp3RelativePath = Path.Combine(beatmapFolder, exportBeatmap.AudioFilename);
+                    string mp3RelativePath = beatmapFolder + "\\" + exportBeatmap.AudioFilename;
                     writer.WriteLine(mp3RelativePath + " | " + exportBeatmap.Filename);
                 }
             }
@@ -151,7 +149,7 @@ namespace osu_trainer
         {
             // read manifest file
             List<string> lines = new List<string>();
-            string mp3ManifestFile = getMp3ListFilePath();
+            string mp3ManifestFile = Properties.Settings.Default.SongsFolder + "\\modified_mp3_list.txt";
 
             if (!File.Exists(mp3ManifestFile))
                 return new List<string>();
@@ -191,7 +189,7 @@ namespace osu_trainer
         public void CleanUpManifestFile()
         {
             // read file
-            string mp3ManifestFile = getMp3ListFilePath();
+            string mp3ManifestFile = Properties.Settings.Default.SongsFolder + "\\modified_mp3_list.txt";
             List<string> lines = File.ReadAllText(mp3ManifestFile).Split(new[] { Environment.NewLine }, StringSplitOptions.None).ToList();
             string pattern = @"(.+) \| (.+)";
             string parseMp3(string line) => MatchGroup(line, pattern, 1);
@@ -550,8 +548,6 @@ namespace osu_trainer
             return retMap;
         }
 
-
-        private string getMp3ListFilePath() => Path.Combine(Properties.Settings.Default.SongsFolder, "..", "modified_mp3_list.txt");
 
         // it is safe to call this function repeatedly
         private void ModifyBeatmapTiming(Beatmap oldMap, Beatmap newMap, float multiplier)

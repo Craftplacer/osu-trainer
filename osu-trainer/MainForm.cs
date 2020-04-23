@@ -206,7 +206,7 @@ namespace osu_trainer
                 return;
             }
                 
-            string imageAbsolutePath = Path.Combine(Path.GetDirectoryName(map.Filename), imageEvent.Filename);
+            string imageAbsolutePath = Path.GetDirectoryName(map.Filename) + "\\" + imageEvent.Filename;
             if (!File.Exists(imageAbsolutePath))
             {
                 // no background for this map
@@ -575,7 +575,7 @@ namespace osu_trainer
             previousBeatmapRead = beatmapFilename;
 
             // Try to locate the beatmap
-            string absoluteFilename = Path.Combine(userSongsFolder, beatmapFolder, beatmapFilename);
+            string absoluteFilename = userSongsFolder + "\\" + beatmapFolder + "\\" + beatmapFilename;
             if (!File.Exists(absoluteFilename))
             {
                 if (++beatmapFindFailCounter == 10)
@@ -598,7 +598,7 @@ namespace osu_trainer
                         Properties.Settings.Default.SongsFolder = userSongsFolder;
                         Properties.Settings.Default.Save();
                         // try again
-                        absoluteFilename = Path.Combine(userSongsFolder, beatmapFolder, beatmapFilename);
+                        absoluteFilename = userSongsFolder + "\\" + beatmapFolder + "\\" + beatmapFilename;
                         if (!File.Exists(absoluteFilename))
                             return;
                     }
